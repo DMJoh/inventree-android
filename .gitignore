@@ -84,4 +84,4 @@ ios/Podfile.lock
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
 
 # FVM Version Cache
-.fvm/
+.fvm/upload-keystore.jks
