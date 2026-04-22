@@ -1,0 +1,58 @@
+name: Sync Upstream
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout fork
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get latest upstream release tag
+        id: upstream
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG=$(gh release view --repo inventree/inventree-app --json tagName -q .tagName)
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "Latest upstream release: $TAG"
+
+      - name: Check if tag already exists in fork
+        id: check
+        run: |
+          TAG="${{ steps.upstream.outputs.tag }}"
+          if git ls-remote --tags origin "refs/tags/$TAG" | grep -q .; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Tag $TAG already exists — nothing to sync."
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "New release $TAG detected — syncing."
+          fi
+
+      - name: Sync master from upstream
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote add upstream https://github.com/inventree/inventree-app.git
+          git fetch upstream --tags
+          git checkout master
+          git merge upstream/master --ff-only
+          git push origin master
+
+      - name: Push tag to fork
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          TAG="${{ steps.upstream.outputs.tag }}"
+          git tag "$TAG"
+          git push origin "$TAG"
