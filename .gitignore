@@ -85,3 +85,6 @@ ios/Podfile.lock
 
 # FVM Version Cache
 .fvm/upload-keystore.jks
+
+
+upload-keystore.jks
