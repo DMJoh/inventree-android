@@ -54,5 +54,7 @@ jobs:
         if: steps.check.outputs.exists == 'false'
         run: |
           TAG="${{ steps.upstream.outputs.tag }}"
-          git tag "$TAG"
+          if ! git tag "$TAG" 2>/dev/null; then
+            echo "Tag $TAG already exists locally (fetched from upstream) — pushing directly"
+          fi
           git push origin "$TAG"
