@@ -47,7 +47,7 @@ jobs:
           git remote add upstream https://github.com/inventree/inventree-app.git
           git fetch upstream --tags
           git checkout master
-          git merge upstream/master --ff-only
+          git merge upstream/master --no-ff -m "chore: sync upstream master"
           git push origin master
 
       - name: Push tag to fork
