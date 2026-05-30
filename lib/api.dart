@@ -198,8 +198,8 @@ class InvenTreeAPI {
   bool _strictHttps = false;
 
   // Endpoint for requesting an API token
-  static const _URL_TOKEN = "user/token/";
-  static const _URL_ROLES = "user/roles/";
+  static const _URL_TOKEN = "user/me/token/";
+  static const _URL_ROLES = "user/me/roles/";
   static const _URL_ME = "user/me/";
 
   // Accessors for various url endpoints
@@ -277,6 +277,9 @@ class InvenTreeAPI {
   Map<String, dynamic> userInfo = {};
 
   String get username => (userInfo["username"] ?? "") as String;
+  String get userEmail => (userInfo["email"] ?? "") as String;
+  String get userFirstName => (userInfo["first_name"] ?? "") as String;
+  String get userLastName => (userInfo["last_name"] ?? "") as String;
 
   int get userId => (userInfo["pk"] ?? -1) as int;
 
@@ -356,6 +359,14 @@ class InvenTreeAPI {
   // Does the server support the "modern" (consolidated) parameter API?
   // Ref: https://github.com/inventree/InvenTree/pull/10699
   bool get supportsModernParameters => apiVersion >= 429;
+
+  // Does the server use the new "user/me/" endpoints?
+  // Ref: https://github.com/inventree/InvenTree/pull/11963
+  bool get supportsNewUserEndpoints => apiVersion >= 490;
+
+  // Does the server support the "creation_date" field on the StockItem model?
+  // Ref: https://github.com/inventree/InvenTree/pull/12011
+  bool get supportsStockItemCreationDate => apiVersion >= 496;
 
   // Cached list of plugins (refreshed when we connect to the server)
   List<InvenTreePlugin> _plugins = [];
@@ -588,9 +599,13 @@ class InvenTreeAPI {
     String authHeader =
         "Basic " + base64Encode(utf8.encode("${username}:${password}"));
 
+    String actualTokenUrl = supportsNewUserEndpoints
+        ? _URL_TOKEN
+        : "user/token/";
+
     // Perform request to get a token
     final response = await get(
-      _URL_TOKEN,
+      actualTokenUrl,
       params: {"name": platform_name},
       headers: {HttpHeaders.authorizationHeader: authHeader},
     );
@@ -709,8 +724,10 @@ class InvenTreeAPI {
     roles.clear();
 
     debug("API: Requesting user role data");
-
-    final response = await get(_URL_ROLES, expectedStatusCode: 200);
+    String actualRoleUrl = supportsNewUserEndpoints
+        ? _URL_ROLES
+        : "user/roles/";
+    final response = await get(actualRoleUrl, expectedStatusCode: 200);
 
     if (!response.successful()) {
       return false;
