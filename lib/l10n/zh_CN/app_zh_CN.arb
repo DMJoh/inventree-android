@@ -1250,6 +1250,8 @@
   "@username": {},
   "usernameEmpty": "用户名不能为空",
   "@usernameEmpty": {},
+  "userDetails": "用户详情",
+  "@userDetails": {},
   "value": "值",
   "@value": {
     "description": "value"
@@ -1262,6 +1264,8 @@
   "@variants": {},
   "version": "版本",
   "@version": {},
+  "versionNewer": "New version available",
+  "@versionNewer": {},
   "viewDetails": "查看详情",
   "@viewDetails": {},
   "viewSupplierPart": "查看供应商零件",

@@ -1250,6 +1250,8 @@
   "@username": {},
   "usernameEmpty": "Uživatelské jméno nesmí být prázdné",
   "@usernameEmpty": {},
+  "userDetails": "Podrobnosti uživatele",
+  "@userDetails": {},
   "value": "Hodnota",
   "@value": {
     "description": "value"
@@ -1262,6 +1264,8 @@
   "@variants": {},
   "version": "Verze",
   "@version": {},
+  "versionNewer": "Je dostupná nová verze",
+  "@versionNewer": {},
   "viewDetails": "Zobrazit detaily",
   "@viewDetails": {},
   "viewSupplierPart": "Zobrazit díl dodavatele",

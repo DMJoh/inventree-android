@@ -1250,6 +1250,8 @@
   "@username": {},
   "usernameEmpty": "نام کاربری نمی تواند خالی باشد",
   "@usernameEmpty": {},
+  "userDetails": "User Details",
+  "@userDetails": {},
   "value": "مقدار",
   "@value": {
     "description": "value"
@@ -1262,6 +1264,8 @@
   "@variants": {},
   "version": "نسخه",
   "@version": {},
+  "versionNewer": "New version available",
+  "@versionNewer": {},
   "viewDetails": "View Details",
   "@viewDetails": {},
   "viewSupplierPart": "نمایش قطعه تامین کننده",

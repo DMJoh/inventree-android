@@ -1250,6 +1250,8 @@
   "@username": {},
   "usernameEmpty": "Ім'я користувача не може бути пустим",
   "@usernameEmpty": {},
+  "userDetails": "User Details",
+  "@userDetails": {},
   "value": "Значення",
   "@value": {
     "description": "value"
@@ -1262,6 +1264,8 @@
   "@variants": {},
   "version": "Версія",
   "@version": {},
+  "versionNewer": "New version available",
+  "@versionNewer": {},
   "viewDetails": "View Details",
   "@viewDetails": {},
   "viewSupplierPart": "Переглянути деталь постачальника",

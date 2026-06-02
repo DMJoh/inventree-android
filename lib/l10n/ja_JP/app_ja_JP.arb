@@ -1250,6 +1250,8 @@
   "@username": {},
   "usernameEmpty": "ユーザー名は空にできません。",
   "@usernameEmpty": {},
+  "userDetails": "User Details",
+  "@userDetails": {},
   "value": "設定値",
   "@value": {
     "description": "value"
@@ -1262,6 +1264,8 @@
   "@variants": {},
   "version": "バージョン",
   "@version": {},
+  "versionNewer": "New version available",
+  "@versionNewer": {},
   "viewDetails": "View Details",
   "@viewDetails": {},
   "viewSupplierPart": "サプライヤー部品を表示",

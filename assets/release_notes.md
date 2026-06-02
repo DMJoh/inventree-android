@@ -1,3 +1,10 @@
+## 0.24.3 - May 2026
+---
+
+- Update file and image selection packages
+- Check for app updates 
+- Updated translations
+
 ## 0.24.2 - May 2026
 ---
 

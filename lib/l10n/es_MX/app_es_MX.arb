@@ -1250,6 +1250,8 @@
   "@username": {},
   "usernameEmpty": "El campo de nombre de usuario no puede estar vacío",
   "@usernameEmpty": {},
+  "userDetails": "User Details",
+  "@userDetails": {},
   "value": "Valor",
   "@value": {
     "description": "value"
@@ -1262,6 +1264,8 @@
   "@variants": {},
   "version": "Versión",
   "@version": {},
+  "versionNewer": "New version available",
+  "@versionNewer": {},
   "viewDetails": "Ver detalles",
   "@viewDetails": {},
   "viewSupplierPart": "Ver Parte de Proveedor",
