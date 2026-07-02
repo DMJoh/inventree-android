@@ -1,3 +1,10 @@
+## 0.25.0 - July 2026
+---
+
+- API speed improvements
+- Enable scanning of Build Order barcodes
+- Updated translations
+
 ## 0.24.3 - May 2026
 ---
 
