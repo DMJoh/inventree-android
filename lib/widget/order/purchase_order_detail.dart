@@ -241,7 +241,7 @@ class _PurchaseOrderDetailState
   List<SpeedDialChild> barcodeButtons(BuildContext context) {
     List<SpeedDialChild> actions = [];
 
-    if (api.supportsBarcodePOReceiveEndpoint && widget.order.isPlaced) {
+    if (widget.order.isPlaced) {
       actions.add(
         SpeedDialChild(
           child: Icon(Icons.barcode_reader),
@@ -258,7 +258,7 @@ class _PurchaseOrderDetailState
       );
     }
 
-    if (widget.order.isPending && api.supportsBarcodePOAddLineEndpoint) {
+    if (widget.order.isPending) {
       actions.add(
         SpeedDialChild(
           child: Icon(TablerIcons.circle_plus, color: COLOR_SUCCESS),
@@ -288,12 +288,10 @@ class _PurchaseOrderDetailState
       INV_PO_SHOW_CAMERA,
       true,
     );
-    supportProjectCodes =
-        api.supportsProjectCodes &&
-        await api.getGlobalBooleanSetting(
-          "PROJECT_CODES_ENABLED",
-          backup: true,
-        );
+    supportProjectCodes = await api.getGlobalBooleanSetting(
+      "PROJECT_CODES_ENABLED",
+      backup: true,
+    );
 
     completedLines = 0;
 
@@ -366,11 +364,6 @@ class _PurchaseOrderDetailState
 
     // Cannot edit supplier field from here
     fields.remove("supplier");
-
-    // Contact model not supported by server
-    if (!api.supportsContactModel) {
-      fields.remove("contact");
-    }
 
     // ProjectCode model not supported by server
     if (!supportProjectCodes) {

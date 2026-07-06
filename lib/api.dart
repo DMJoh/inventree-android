@@ -192,12 +192,10 @@ class InvenTreeAPI {
     }
   }
 
-  // Minimum required API version for server.
-  // Deliberately kept low/permissive: individual features are gated by their
-  // own apiVersion checks below (up to 496 at last count), so this floor
-  // only needs to reject servers old enough to predate those checks
-  // entirely, not enforce feature parity. Last reviewed 2026-07-06.
-  static const _minApiVersion = 100;
+  // Minimum required API version for server
+  // 2024-03-02 (release 0.14.0)
+  // Ref: https://github.com/inventree/InvenTree/releases/tag/0.14.0
+  static const _minApiVersion = 180;
 
   bool _strictHttps = false;
 
@@ -294,45 +292,9 @@ class InvenTreeAPI {
   String get serverVersion => (serverInfo["version"] ?? "") as String;
   int get apiVersion => (serverInfo["apiVersion"] ?? 1) as int;
 
-  // Consolidated search request API v102 or newer
-  bool get supportsConsolidatedSearch => apiVersion >= 102;
-
-  // ReturnOrder supports API v104 or newer
-  bool get supportsReturnOrders => apiVersion >= 104;
-
-  // "Contact" model exposed to API
-  bool get supportsContactModel => apiVersion >= 104;
-
-  // Status label endpoints API v105 or newer
-  bool get supportsStatusLabelEndpoints => apiVersion >= 105;
-
-  // Regex search API v106 or newer
-  bool get supportsRegexSearch => apiVersion >= 106;
-
-  // Order barcodes API v107 or newer
-  bool get supportsOrderBarcodes => apiVersion >= 107;
-
-  // Project codes require v109 or newer
-  bool get supportsProjectCodes => apiVersion >= 109;
-
-  // Does the server support extra fields on stock adjustment actions?
-  bool get supportsStockAdjustExtraFields => apiVersion >= 133;
-
-  // Does the server support receiving items against a PO using barcodes?
-  bool get supportsBarcodePOReceiveEndpoint => apiVersion >= 139;
-
-  // Does the server support adding line items to a PO using barcodes?
-  bool get supportsBarcodePOAddLineEndpoint => apiVersion >= 153;
-
-  // Does the server support allocating stock to sales order using barcodes?
-  bool get supportsBarcodeSOAllocateEndpoint => apiVersion >= 160;
-
-  // Does the server support the "modern" test results API
-  // Ref: https://github.com/inventree/InvenTree/pull/6430/
-  bool get supportsModernTestResults => apiVersion >= 169;
-
-  // Does the server support "null" top-level filtering for PartCategory and StockLocation endpoints?
-  bool get supportsNullTopLevelFiltering => apiVersion < 174;
+  /* API Version Checks
+   * These functions are used to determine if the server supports a particular feature
+   */
 
   // Does the server support "active" status on Company and SupplierPart API endpoints?
   bool get supportsCompanyActiveStatus => apiVersion >= 189;

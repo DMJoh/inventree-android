@@ -239,20 +239,18 @@ class _SalesOrderDetailState extends RefreshableState<SalesOrderDetailWidget> {
         ),
       );
 
-      if (api.supportsBarcodeSOAllocateEndpoint) {
-        actions.add(
-          SpeedDialChild(
-            child: Icon(TablerIcons.transition_right),
-            label: L10().allocateStock,
-            onTap: () async {
-              scanBarcode(
-                context,
-                handler: SOAllocateStockHandler(salesOrder: widget.order),
-              );
-            },
-          ),
-        );
-      }
+      actions.add(
+        SpeedDialChild(
+          child: Icon(TablerIcons.transition_right),
+          label: L10().allocateStock,
+          onTap: () async {
+            scanBarcode(
+              context,
+              handler: SOAllocateStockHandler(salesOrder: widget.order),
+            );
+          },
+        ),
+      );
     }
 
     return actions;
@@ -263,12 +261,10 @@ class _SalesOrderDetailState extends RefreshableState<SalesOrderDetailWidget> {
     await widget.order.reload();
     await api.SalesOrderStatus.load();
 
-    supportsProjectCodes =
-        api.supportsProjectCodes &&
-        await api.getGlobalBooleanSetting(
-          "PROJECT_CODES_ENABLED",
-          backup: true,
-        );
+    supportsProjectCodes = await api.getGlobalBooleanSetting(
+      "PROJECT_CODES_ENABLED",
+      backup: true,
+    );
     showCameraShortcut = await InvenTreeSettingsManager().getBool(
       INV_SO_SHOW_CAMERA,
       true,
@@ -311,11 +307,6 @@ class _SalesOrderDetailState extends RefreshableState<SalesOrderDetailWidget> {
     var fields = widget.order.formFields();
 
     fields.remove("customer");
-
-    // Contact model not supported by server
-    if (!api.supportsContactModel) {
-      fields.remove("contact");
-    }
 
     // ProjectCode model not supported by server
     if (!supportsProjectCodes) {
