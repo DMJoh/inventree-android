@@ -192,12 +192,13 @@ class _CategoryDisplayState extends RefreshableState<CategoryDisplayWidget> {
 
     if (parent != null) {
       filters["parent"] = parent.toString();
-    } else if (api.supportsNullTopLevelFiltering) {
+    } else {
       filters["parent"] = "null";
     }
 
     List<Widget> tiles = <Widget>[
       getCategoryDescriptionCard(),
+      if (showPk && widget.category != null) pkTile(widget.category!.pk),
       Expanded(
         child: PaginatedPartCategoryList(filters, title: L10().subcategories),
         flex: 10,

@@ -25,6 +25,7 @@ import "package:inventree/inventree/model.dart";
 import "package:inventree/inventree/notification.dart";
 import "package:inventree/inventree/status_codes.dart";
 import "package:inventree/inventree/sentry.dart";
+import "package:inventree/settings/login.dart";
 import "package:inventree/user_profile.dart";
 import "package:inventree/widget/dialogs.dart";
 import "package:inventree/widget/snacks.dart";
@@ -192,8 +193,9 @@ class InvenTreeAPI {
   }
 
   // Minimum required API version for server
-  // 2023-03-04
-  static const _minApiVersion = 100;
+  // 2024-03-02 (release 0.14.0)
+  // Ref: https://github.com/inventree/InvenTree/releases/tag/0.14.0
+  static const _minApiVersion = 180;
 
   bool _strictHttps = false;
 
@@ -290,45 +292,9 @@ class InvenTreeAPI {
   String get serverVersion => (serverInfo["version"] ?? "") as String;
   int get apiVersion => (serverInfo["apiVersion"] ?? 1) as int;
 
-  // Consolidated search request API v102 or newer
-  bool get supportsConsolidatedSearch => apiVersion >= 102;
-
-  // ReturnOrder supports API v104 or newer
-  bool get supportsReturnOrders => apiVersion >= 104;
-
-  // "Contact" model exposed to API
-  bool get supportsContactModel => apiVersion >= 104;
-
-  // Status label endpoints API v105 or newer
-  bool get supportsStatusLabelEndpoints => apiVersion >= 105;
-
-  // Regex search API v106 or newer
-  bool get supportsRegexSearch => apiVersion >= 106;
-
-  // Order barcodes API v107 or newer
-  bool get supportsOrderBarcodes => apiVersion >= 107;
-
-  // Project codes require v109 or newer
-  bool get supportsProjectCodes => apiVersion >= 109;
-
-  // Does the server support extra fields on stock adjustment actions?
-  bool get supportsStockAdjustExtraFields => apiVersion >= 133;
-
-  // Does the server support receiving items against a PO using barcodes?
-  bool get supportsBarcodePOReceiveEndpoint => apiVersion >= 139;
-
-  // Does the server support adding line items to a PO using barcodes?
-  bool get supportsBarcodePOAddLineEndpoint => apiVersion >= 153;
-
-  // Does the server support allocating stock to sales order using barcodes?
-  bool get supportsBarcodeSOAllocateEndpoint => apiVersion >= 160;
-
-  // Does the server support the "modern" test results API
-  // Ref: https://github.com/inventree/InvenTree/pull/6430/
-  bool get supportsModernTestResults => apiVersion >= 169;
-
-  // Does the server support "null" top-level filtering for PartCategory and StockLocation endpoints?
-  bool get supportsNullTopLevelFiltering => apiVersion < 174;
+  /* API Version Checks
+   * These functions are used to determine if the server supports a particular feature
+   */
 
   // Does the server support "active" status on Company and SupplierPart API endpoints?
   bool get supportsCompanyActiveStatus => apiVersion >= 189;
@@ -363,6 +329,10 @@ class InvenTreeAPI {
   // Does the server use the new "user/me/" endpoints?
   // Ref: https://github.com/inventree/InvenTree/pull/11963
   bool get supportsNewUserEndpoints => apiVersion >= 490;
+
+  // Does the server support TransferOrder model
+  // Ref: https://github.com/inventree/InvenTree/pull/11281
+  bool get supportsTransferOrders => apiVersion >= 492;
 
   // Does the server support the "creation_date" field on the StockItem model?
   // Ref: https://github.com/inventree/InvenTree/pull/12011
@@ -430,16 +400,34 @@ class InvenTreeAPI {
     }
 
     if (!await _checkAuth()) {
-      showServerError(
-        _URL_ME,
-        L10().serverNotConnected,
-        L10().serverAuthenticationError,
-      );
+      final UserProfile? expiredProfile = profile;
 
       // Invalidate the token
-      if (profile != null) {
-        profile!.token = "";
-        await UserProfileDBManager().updateProfile(profile!);
+      if (expiredProfile != null) {
+        expiredProfile.token = "";
+        await UserProfileDBManager().updateProfile(expiredProfile);
+      }
+
+      if (expiredProfile != null) {
+        showServerError(
+          _URL_ME,
+          L10().sessionExpired,
+          "${L10().sessionExpiredDetail}\n${expiredProfile.name}",
+        );
+
+        // Take the user straight to the login screen for this profile,
+        // rather than leaving them to work out why Home shows disconnected
+        OneContext().push(
+          MaterialPageRoute(
+            builder: (context) => InvenTreeLoginWidget(expiredProfile),
+          ),
+        );
+      } else {
+        showServerError(
+          _URL_ME,
+          L10().serverNotConnected,
+          L10().serverAuthenticationError,
+        );
       }
 
       return false;
@@ -487,11 +475,7 @@ class InvenTreeAPI {
 
     if (!response.successful()) {
       debug("Server returned invalid response: ${response.statusCode}");
-      showStatusCodeError(
-        apiUrl,
-        response.statusCode,
-        details: response.data.toString(),
-      );
+      showStatusCodeError(apiUrl, response.statusCode, details: response.data);
       return false;
     }
 
@@ -557,8 +541,9 @@ class InvenTreeAPI {
   Future<APIResponse> fetchToken(
     UserProfile userProfile,
     String username,
-    String password,
-  ) async {
+    String password, {
+    bool showDialog = true,
+  }) async {
     debug("Fetching user token from ${userProfile.server}");
 
     profile = userProfile;
@@ -609,18 +594,22 @@ class InvenTreeAPI {
       headers: {HttpHeaders.authorizationHeader: authHeader},
     );
 
+    final data = response.asMap();
+
     // Invalid response
     if (!response.successful()) {
-      switch (response.statusCode) {
-        case 401:
-        case 403:
-          showServerError(
-            apiUrl,
-            L10().serverAuthenticationError,
-            L10().invalidUsernamePassword,
-          );
-        default:
-          showStatusCodeError(apiUrl, response.statusCode);
+      if (showDialog) {
+        switch (response.statusCode) {
+          case 401:
+          case 403:
+            showServerError(
+              apiUrl,
+              L10().serverAuthenticationError,
+              L10().invalidUsernamePassword,
+            );
+          default:
+            showStatusCodeError(apiUrl, response.statusCode);
+        }
       }
 
       debug("Token request failed: STATUS ${response.statusCode}");
@@ -628,16 +617,17 @@ class InvenTreeAPI {
       if (response.data != null) {
         debug("Response data: ${response.data.toString()}");
       }
-    }
-
-    final data = response.asMap();
-
-    if (!data.containsKey("token")) {
-      showServerError(
-        apiUrl,
-        L10().tokenMissing,
-        L10().tokenMissingFromResponse,
-      );
+    } else if (!data.containsKey("token")) {
+      // The request was otherwise successful, but the response is missing
+      // the expected token field - a distinct (and much rarer) problem from
+      // an authentication failure, so only reachable when that did NOT occur
+      if (showDialog) {
+        showServerError(
+          apiUrl,
+          L10().tokenMissing,
+          L10().tokenMissingFromResponse,
+        );
+      }
     }
 
     // Save the token to the user profile
@@ -945,7 +935,11 @@ class InvenTreeAPI {
       });
     } on SocketException catch (error) {
       debug("SocketException at ${url}: ${error.toString()}");
-      showServerError(url, L10().connectionRefused, error.toString());
+      showServerError(
+        url,
+        L10().connectionRefused,
+        L10().connectionRefusedDetail,
+      );
       return;
     } on TimeoutException {
       debug("TimeoutException at ${url}");
@@ -980,8 +974,12 @@ class InvenTreeAPI {
       } else {
         showStatusCodeError(url, response.statusCode);
       }
-    } on SocketException catch (error) {
-      showServerError(url, L10().connectionRefused, error.toString());
+    } on SocketException {
+      showServerError(
+        url,
+        L10().connectionRefused,
+        L10().connectionRefusedDetail,
+      );
     } on TimeoutException {
       showTimeoutError(url);
     } catch (error, stackTrace) {
@@ -1063,7 +1061,11 @@ class InvenTreeAPI {
         );
       }
     } on SocketException catch (error) {
-      showServerError(url, L10().connectionRefused, error.toString());
+      showServerError(
+        url,
+        L10().connectionRefused,
+        L10().connectionRefusedDetail,
+      );
       response.error = "SocketException";
       response.errorDetail = error.toString();
     } on FormatException {
@@ -1190,12 +1192,13 @@ class InvenTreeAPI {
 
     client.badCertificateCallback =
         (X509Certificate cert, String host, int port) {
+          // The active profile may have been explicitly trusted by the user
+          // (in-flow, after a prior certificate failure) - honor that first
+          if (profile?.trustedCertificate ?? false) {
+            return true;
+          }
+
           if (_strictHttps) {
-            showServerError(
-              "${host}:${port}",
-              L10().serverCertificateError,
-              L10().serverCertificateInvalid,
-            );
             return false;
           }
 
@@ -1287,10 +1290,10 @@ class InvenTreeAPI {
     HttpClientRequest? _request;
 
     // Attempt to open a connection to the server
+    // (retries once after a short delay on a transient network blip -
+    // nothing has been sent yet at this point, so a retry here is safe)
     try {
-      _request = await httpClient
-          .openUrl(method, _uri)
-          .timeout(Duration(seconds: 10));
+      _request = await _openUrlWithRetry(method, _uri);
 
       // Default headers
       defaultHeaders().forEach((key, value) {
@@ -1305,7 +1308,11 @@ class InvenTreeAPI {
       return _request;
     } on SocketException catch (error) {
       debug("SocketException at ${url}: ${error.toString()}");
-      showServerError(url, L10().connectionRefused, error.toString());
+      showServerError(
+        url,
+        L10().connectionRefused,
+        L10().connectionRefusedDetail,
+      );
       return null;
     } on TimeoutException {
       debug("TimeoutException at ${url}");
@@ -1313,14 +1320,36 @@ class InvenTreeAPI {
       return null;
     } on OSError catch (error) {
       debug("OSError at ${url}: ${error.toString()}");
-      showServerError(url, L10().connectionRefused, error.toString());
+      showServerError(
+        url,
+        L10().connectionRefused,
+        L10().connectionRefusedDetail,
+      );
       return null;
     } on CertificateException catch (error) {
+      final HttpClientRequest? retried = await _retryAfterCertificateTrust(
+        url,
+        method,
+        _uri,
+        headers,
+      );
+      if (retried != null) {
+        return retried;
+      }
       debug("CertificateException at ${url}:");
       debug(error.toString());
       showServerError(url, L10().serverCertificateError, error.toString());
       return null;
     } on HandshakeException catch (error) {
+      final HttpClientRequest? retried = await _retryAfterCertificateTrust(
+        url,
+        method,
+        _uri,
+        headers,
+      );
+      if (retried != null) {
+        return retried;
+      }
       debug("HandshakeException at ${url}:");
       debug(error.toString());
       showServerError(url, L10().serverCertificateError, error.toString());
@@ -1337,6 +1366,107 @@ class InvenTreeAPI {
 
       return null;
     }
+  }
+
+  /*
+   * Open a connection to the given URL, retrying once after a short delay
+   * if the first attempt fails with a transient network error. Nothing has
+   * been sent to the server yet at this point, so a retry here is safe
+   * regardless of HTTP method (unlike retrying after a response has already
+   * started being read/sent).
+   */
+  Future<HttpClientRequest> _openUrlWithRetry(String method, Uri uri) async {
+    try {
+      return await httpClient
+          .openUrl(method, uri)
+          .timeout(Duration(seconds: 10));
+    } on SocketException {
+      await Future.delayed(const Duration(seconds: 2));
+      return await httpClient
+          .openUrl(method, uri)
+          .timeout(Duration(seconds: 10));
+    } on TimeoutException {
+      await Future.delayed(const Duration(seconds: 2));
+      return await httpClient
+          .openUrl(method, uri)
+          .timeout(Duration(seconds: 10));
+    }
+  }
+
+  /*
+   * A certificate error occurred while connecting to the active profile's
+   * server. If the user hasn't already trusted this profile's certificate,
+   * prompt them in-flow; if they accept, persist that decision against the
+   * profile and retry the connection once.
+   */
+  Future<HttpClientRequest?> _retryAfterCertificateTrust(
+    String url,
+    String method,
+    Uri uri,
+    Map<String, String> headers,
+  ) async {
+    final UserProfile? prf = profile;
+
+    if (prf == null || prf.trustedCertificate) {
+      // Nothing new to prompt for - surface the original error as-is
+      return null;
+    }
+
+    final bool trust = await _promptTrustCertificate(uri.host);
+
+    if (!trust) {
+      return null;
+    }
+
+    prf.trustedCertificate = true;
+    await UserProfileDBManager().updateProfile(prf);
+
+    try {
+      final HttpClientRequest request = await httpClient
+          .openUrl(method, uri)
+          .timeout(Duration(seconds: 10));
+
+      defaultHeaders().forEach((key, value) {
+        request.headers.set(key, value);
+      });
+
+      headers.forEach((key, value) {
+        request.headers.set(key, value);
+      });
+
+      return request;
+    } catch (error) {
+      debug(
+        "Retry after certificate trust failed at ${url}: ${error.toString()}",
+      );
+      return null;
+    }
+  }
+
+  /*
+   * Ask the user whether to trust an otherwise-invalid TLS certificate for
+   * the given host. Returns true if they accept.
+   */
+  Future<bool> _promptTrustCertificate(String host) async {
+    final Completer<bool> completer = Completer<bool>();
+
+    confirmationDialog(
+      L10().serverCertificateError,
+      "${L10().serverCertificateTrust}\n${host}",
+      icon: TablerIcons.shield_exclamation,
+      onAccept: () {
+        if (!completer.isCompleted) {
+          completer.complete(true);
+        }
+      },
+      onReject: () {
+        if (!completer.isCompleted) {
+          completer.complete(false);
+        }
+      },
+    );
+
+    return completer.future;
   }
 
   /*
@@ -1405,7 +1535,7 @@ class InvenTreeAPI {
           showStatusCodeError(
             url,
             _response.statusCode,
-            details: response.data.toString(),
+            details: response.data,
           );
         }
       }
@@ -1414,7 +1544,11 @@ class InvenTreeAPI {
       response.error = "HTTPException";
       response.errorDetail = error.toString();
     } on SocketException catch (error) {
-      showServerError(url, L10().connectionRefused, error.toString());
+      showServerError(
+        url,
+        L10().connectionRefused,
+        L10().connectionRefusedDetail,
+      );
       response.error = "SocketException";
       response.errorDetail = error.toString();
     } on CertificateException catch (error) {

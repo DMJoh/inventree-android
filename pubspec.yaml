@@ -27,9 +27,11 @@ dependencies:
   flutter_localized_locales: ^2.0.5
   flutter_markdown: ^0.6.19               # Rendering markdown
   flutter_overlay_loader: ^2.0.0          # Overlay screen support
+  flutter_secure_storage: ^10.3.1
   flutter_speed_dial: ^6.2.0              # Speed dial / FAB implementation
   flutter_tabler_icons: ^1.43.0           # Tabler icons
   http: ^1.4.0
+  image: ^4.5.4                           # Re-encode/compress images before upload
   image_picker: ^1.2.2                    # Select or take photos
   infinite_scroll_pagination: ^4.0.0      # Let the server do all the work!
   intl: ^0.20.2
