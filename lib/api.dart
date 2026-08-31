@@ -326,6 +326,9 @@ class InvenTreeAPI {
   // Ref: https://github.com/inventree/InvenTree/pull/10699
   bool get supportsModernParameters => apiVersion >= 429;
 
+  // Does the support support the "primary" field on SupplierPart model?
+  bool get supportsSupplierPartPrimaryField => apiVersion >= 456;
+
   // Does the server use the new "user/me/" endpoints?
   // Ref: https://github.com/inventree/InvenTree/pull/11963
   bool get supportsNewUserEndpoints => apiVersion >= 490;
@@ -1927,11 +1930,15 @@ class InvenTreeAPI {
   InvenTreeStatusCode get SalesOrderStatus =>
       _get_status_class("order/so/status/");
 
+  InvenTreeStatusCode get BuildOrderStatus =>
+      _get_status_class("build/status/");
+
   void clearStatusCodeData() {
     StockHistoryStatus.data.clear();
     StockStatus.data.clear();
     PurchaseOrderStatus.data.clear();
     SalesOrderStatus.data.clear();
+    BuildOrderStatus.data.clear();
   }
 
   Future<void> fetchStatusCodeData({bool forceReload = true}) async {
@@ -1939,6 +1946,7 @@ class InvenTreeAPI {
     StockStatus.load(forceReload: forceReload);
     PurchaseOrderStatus.load(forceReload: forceReload);
     SalesOrderStatus.load(forceReload: forceReload);
+    BuildOrderStatus.load(forceReload: forceReload);
   }
 
   int notification_counter = 0;

@@ -612,6 +612,12 @@
   "filterInProductionDetail": "Show parts in production",
   "@filterInProductionDetail": {},
 
+  "filterPrimary": "Primary",
+  "@filterPrimary": {},
+
+  "filterPrimaryDetail": "Show primary supplier parts",
+  "@filterPrimaryDetail": {},
+
   "filterSerialized": "Serialized",
   "@filterSerialized": {},
 
@@ -1136,6 +1142,9 @@
   "printLabel": "Print Label",
   "@printLabel": {},
 
+  "primary": "Primary",
+  "@primary": {},
+
   "plugin": "Plugin",
   "@plugin": {},
 
@@ -1439,6 +1448,12 @@
 
   "scannerExternalDetail": "Use external scanner to read barcodes (wedge mode)",
   "@scannerExternalDetail": {},
+
+  "scannerIntent": "Intent Wedge",
+  "@scannerIntent": {},
+
+  "scannerIntentDetail": "Receive scans via Android intents",
+  "@scannerIntentDetail": {},
 
   "scanReceivedParts": "Scan Received Parts",
   "@scanReceivedParts": {},

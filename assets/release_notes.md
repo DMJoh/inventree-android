@@ -1,3 +1,10 @@
+## 0.25.1 - August 2026
+---
+
+- Additional filtering options for supplier parts
+- Additional barcode support using data intents
+- Improvements for build order display
+
 ## 0.25.0 - July 2026
 ---
 
