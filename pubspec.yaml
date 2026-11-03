@@ -1,7 +1,7 @@
 name: inventree
 description: InvenTree stock management
 
-version: 0.25.2+126
+version: 1.0.0+128
 
 environment:
   sdk: ^3.8.1
@@ -30,6 +30,7 @@ dependencies:
   flutter_secure_storage: ^10.3.1
   flutter_speed_dial: ^6.2.0              # Speed dial / FAB implementation
   flutter_tabler_icons: ^1.43.0           # Tabler icons
+  flutter_widget_from_html: ^0.17.4       # Rendering HTML (multi-notes)
   http: ^1.4.0
   image: ^4.5.4                           # Re-encode/compress images before upload
   image_picker: ^1.2.2                    # Select or take photos
@@ -48,6 +49,7 @@ dependencies:
   wakelock_plus: ^1.3.2                   # Prevent device from sleeping
 
 dev_dependencies:
+  crypto: ^3.0.8
   flutter_launcher_icons: ^0.14.1
   flutter_test:
     sdk: flutter

@@ -20,7 +20,8 @@ import "package:inventree/l10.dart";
 import "package:inventree/app_colors.dart";
 import "package:inventree/widget/attachment_widget.dart";
 import "package:inventree/widget/dialogs.dart";
-import "package:inventree/widget/notes_widget.dart";
+import "package:inventree/widget/notes_list_widget.dart";
+import "package:inventree/widget/history_widget.dart";
 import "package:inventree/widget/snacks.dart";
 import "package:inventree/widget/progress.dart";
 
@@ -492,18 +493,18 @@ class _SalesOrderDetailState extends RefreshableState<SalesOrderDetailWidget> {
 
     // Notes tile
     tiles.add(
-      ListTile(
-        title: Text(L10().notes),
-        leading: Icon(TablerIcons.note, color: COLOR_ACTION),
-        trailing: LinkIcon(),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => NotesWidget(widget.order)),
-          );
-        },
-      ),
+      ShowNotesItem(context, widget.order, InvenTreeSalesOrder.MODEL_TYPE),
     );
+
+    if (showHistory) {
+      tiles.add(
+        ShowHistoryItem(
+          context,
+          InvenTreeSalesOrder.MODEL_TYPE,
+          widget.order.pk,
+        ),
+      );
+    }
 
     ListTile? parameterTile = ShowParametersItem(
       context,

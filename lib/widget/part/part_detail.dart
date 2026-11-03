@@ -21,7 +21,8 @@ import "package:inventree/widget/link_icon.dart";
 import "package:inventree/widget/parameter_widget.dart";
 import "package:inventree/widget/part/bom_list.dart";
 import "package:inventree/widget/part/part_list.dart";
-import "package:inventree/widget/notes_widget.dart";
+import "package:inventree/widget/notes_list_widget.dart";
+import "package:inventree/widget/history_widget.dart";
 import "package:inventree/widget/part/part_pricing.dart";
 import "package:inventree/widget/progress.dart";
 import "package:inventree/widget/part/category_display.dart";
@@ -158,10 +159,9 @@ class _PartDisplayState extends RefreshableState<PartDetailWidget> {
       false,
     );
 
-    showPricing = await InvenTreeSettingsManager().getBool(
-      INV_PART_SHOW_PRICING,
-      true,
-    );
+    showPricing =
+        api.canViewPricing &&
+        await InvenTreeSettingsManager().getBool(INV_PART_SHOW_PRICING, true);
     showBom = await InvenTreeSettingsManager().getBool(INV_PART_SHOW_BOM, true);
     allowLabelPrinting = await InvenTreeSettingsManager().getBool(
       INV_ENABLE_LABEL_PRINTING,
@@ -726,19 +726,11 @@ class _PartDisplayState extends RefreshableState<PartDetailWidget> {
     }
 
     // Notes field
-    tiles.add(
-      ListTile(
-        title: Text(L10().notes),
-        leading: Icon(TablerIcons.note, color: COLOR_ACTION),
-        trailing: LinkIcon(),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => NotesWidget(part)),
-          );
-        },
-      ),
-    );
+    tiles.add(ShowNotesItem(context, part, InvenTreePart.MODEL_TYPE));
+
+    if (showHistory) {
+      tiles.add(ShowHistoryItem(context, InvenTreePart.MODEL_TYPE, part.pk));
+    }
 
     ListTile? parameterTile = ShowParametersItem(
       context,

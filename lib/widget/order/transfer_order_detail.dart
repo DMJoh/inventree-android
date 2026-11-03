@@ -12,7 +12,8 @@ import "package:inventree/inventree/transfer_order.dart";
 
 import "package:inventree/widget/dialogs.dart";
 import "package:inventree/widget/link_icon.dart";
-import "package:inventree/widget/notes_widget.dart";
+import "package:inventree/widget/notes_list_widget.dart";
+import "package:inventree/widget/history_widget.dart";
 import "package:inventree/widget/order/transfer_order_line_list.dart";
 import "package:inventree/widget/progress.dart";
 import "package:inventree/widget/refreshable_state.dart";
@@ -406,18 +407,18 @@ class _TransferOrderDetailState
     }
 
     tiles.add(
-      ListTile(
-        title: Text(L10().notes),
-        leading: Icon(TablerIcons.note, color: COLOR_ACTION),
-        trailing: LinkIcon(),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => NotesWidget(widget.order)),
-          );
-        },
-      ),
+      ShowNotesItem(context, widget.order, InvenTreeTransferOrder.MODEL_TYPE),
     );
+
+    if (showHistory) {
+      tiles.add(
+        ShowHistoryItem(
+          context,
+          InvenTreeTransferOrder.MODEL_TYPE,
+          widget.order.pk,
+        ),
+      );
+    }
 
     return tiles;
   }
