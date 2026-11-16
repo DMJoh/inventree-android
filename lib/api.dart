@@ -42,7 +42,7 @@ class APIResponse {
     this.method = "",
     this.statusCode = -1,
     this.error = "",
-    this.data = const {},
+    this.data = const <String, dynamic>{},
   });
 
   int statusCode = -1;
@@ -1816,6 +1816,8 @@ class InvenTreeAPI {
       debug("CertificateException at ${request.uri.toString()}:");
       debug(error.toString());
       showServerError(url, L10().serverCertificateError, error.toString());
+      response.error = "CertificateException";
+      response.errorDetail = error.toString();
     } on TimeoutException {
       showTimeoutError(url);
       response.error = "TimeoutException";
@@ -2220,11 +2222,17 @@ class InvenTreeAPI {
   InvenTreeStatusCode get BuildOrderStatus =>
       _get_status_class("build/status/");
 
+  // Transfer orders have no dedicated status endpoint,
+  // so use the generic endpoint (lookup by class name requires API v405+)
+  InvenTreeStatusCode get TransferOrderStatus =>
+      _get_status_class("generic/status/TransferOrderStatus/");
+
   void clearStatusCodeData() {
     StockStatus.data.clear();
     PurchaseOrderStatus.data.clear();
     SalesOrderStatus.data.clear();
     BuildOrderStatus.data.clear();
+    TransferOrderStatus.data.clear();
   }
 
   Future<void> fetchStatusCodeData({bool forceReload = true}) async {
@@ -2232,6 +2240,10 @@ class InvenTreeAPI {
     PurchaseOrderStatus.load(forceReload: forceReload);
     SalesOrderStatus.load(forceReload: forceReload);
     BuildOrderStatus.load(forceReload: forceReload);
+
+    if (supportsTransferOrders) {
+      TransferOrderStatus.load(forceReload: forceReload);
+    }
   }
 
   int notification_counter = 0;
